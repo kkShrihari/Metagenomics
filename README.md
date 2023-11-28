@@ -1,9 +1,29 @@
-Quality Assessment: Used FastQC to assess raw fastq files in the 'fastqc2' directory.
+#!/bin/bash
+#Quality Assessment
+source activate fastqc
+mkdir -p fastqc2
+fastqc *.fastq.gz -o fastqc2 && cd fastqc2 && conda deactivate
 
-MultiQC Analysis: Employed MultiQC to generate a consolidated report on FastQC results in the 'multiqc2' directory.
+#MultiQC Analysis
+source activate multiqc
+mkdir -p multiqc2
+multiqc .. -o multiqc2 && conda deactivate && cd ..
 
-Trimming: Applied quality-based trimming (threshold 20) using Trim Galore on paired-end fastq files, storing results in 'trim_result.'
+#Trimming
+source activate trim-galore
+mkdir -p trim_result
+trim_galore --paired sample2_1.fastq.gz sample2_2.fastq.gz -o trim_result -q 20 && conda deactivate && cd trim_result
 
-Post-Trimming Quality Assessment: Conducted FastQC on trimmed files in 'trim_result,' saving results in 'trim_fastqc.'
+source activate fastqc
+mkdir -p trim_fastqc
+fastqc *.fq.gz -o trim_fastqc
+conda deactivate
+cd ..
 
-Taxonomic Classification: Utilized Kraken2 with the UNITE database for taxonomic classification on trimmed files in 'trim_result.' Output and report saved in 'kraken2' directory.
+#Taxonomic Classification
+source activate kraken2
+cd trim_result
+kraken2 -db /mnt/e/Biokart/Metagenomics_fungi/Unite/ --paired sample2_1_val_1.fq.gz sample2_2_val_2.fq.gz --report sample2_report > sample2_output 
+conda deactivate
+mkdir -p kraken2
+mv sample2_report kraken2 | mv sample2_output kraken2
